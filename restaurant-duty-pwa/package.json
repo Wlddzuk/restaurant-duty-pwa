@@ -1,0 +1,38 @@
+{
+  "name": "restaurant-duty-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Restaurant Duty PWA - Digital checklist system for iPad",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "dexie": "^4.0.4",
+    "dexie-react-hooks": "^1.1.7",
+    "zustand": "^4.5.2",
+    "jspdf": "^2.5.1",
+    "googleapis": "^134.0.0",
+    "google-auth-library": "^9.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.33",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
