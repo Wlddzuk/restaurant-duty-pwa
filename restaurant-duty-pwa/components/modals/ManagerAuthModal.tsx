@@ -60,8 +60,8 @@ export function ManagerAuthModal({
   const [shiftNotes, setShiftNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [lockoutRemaining, setLockoutRemaining] = useState(0);
-  const [attemptsRemaining, setAttemptsRemaining] = useState(PIN_SECURITY.MAX_ATTEMPTS);
+  const [lockoutRemaining, setLockoutRemaining] = useState<number>(0);
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number>(PIN_SECURITY.MAX_ATTEMPTS);
   
   const pinInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
