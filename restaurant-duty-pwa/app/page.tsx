@@ -82,32 +82,29 @@ export default function HomePage() {
     };
   }, []);
 
-  // Handle template selection
+  // Handle template selection - collaborative mode
   const handleTemplateSelect = async (template: TemplatePreview) => {
     // Check for existing sessions
     const existingSession = await checkForActiveSessions(template.id);
 
     if (existingSession) {
-      if (existingSession.isOwnDevice) {
-        // Resume own session
+      // In collaborative mode, existing sessions can be resumed by anyone
+      if (confirm(
+        `This checklist was started at ${new Date(existingSession.startedAt).toLocaleTimeString()}. ` +
+        `Progress: ${existingSession.completionPercentage}%\n\n` +
+        `Continue working on it?`
+      )) {
         router.push(`/checklist/${template.id}?resume=${existingSession.checklistId}`);
-        return;
-      } else {
-        // Session on another device - show warning
-        alert(
-          `${existingSession.staffName} started this checklist on another iPad at ` +
-          `${new Date(existingSession.startedAt).toLocaleTimeString()}. ` +
-          `Ask a manager to close it first.`
-        );
-        return;
       }
+      return;
     }
 
+    // Start new collaborative checklist (no staff selection needed)
     setSelectedTemplate(template);
     setShowNameInput(true);
   };
 
-  // Handle staff selection
+  // Handle checklist start - ask who's starting it
   const handleStaffSelect = async (staff: StaffMember) => {
     if (!selectedTemplate) return;
 
@@ -120,9 +117,8 @@ export default function HomePage() {
     router.push(`/checklist/${selectedTemplate.id}`);
   };
 
-  // Handle adding new staff (requires manager PIN - simplified for now)
+  // Handle adding new staff
   const handleAddNewStaff = async (name: string) => {
-    // In a real implementation, this would trigger ManagerAuthModal first
     const newStaff = await addStaff({ name, role: 'staff' });
     if (newStaff) {
       handleStaffSelect(newStaff);
@@ -284,7 +280,7 @@ export default function HomePage() {
                   {selectedTemplate.name}
                 </h2>
                 <p className="text-gray-500 text-sm">
-                  Who's completing this checklist?
+                  Who's starting this checklist?
                 </p>
               </div>
             </div>

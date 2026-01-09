@@ -112,7 +112,7 @@ export const useSessionStore = create<SessionStore>()(
             templateId,
             templateName: template.name,
             status: 'in_progress',
-            staff,
+            startedBy: staff,
             deviceId,
             tasks: Object.fromEntries(
               taskIds.map((id) => [
@@ -206,7 +206,7 @@ export const useSessionStore = create<SessionStore>()(
             completedAt: now,
             note,
             inputValue,
-            completedBy: currentChecklist.staff.id,
+            completedBy: currentChecklist.startedBy,
           };
 
           const updatedTasks = {
@@ -259,7 +259,7 @@ export const useSessionStore = create<SessionStore>()(
             action: 'checklist_submitted',
             entityId: currentChecklist.id,
             entityType: 'checklist',
-            performedBy: currentChecklist.staff.id,
+            performedBy: currentChecklist.startedBy.id,
             details: {
               completionPercentage: currentChecklist.completionPercentage,
             },
@@ -308,7 +308,7 @@ export const useSessionStore = create<SessionStore>()(
             checklistId: session.id,
             templateId: session.templateId,
             templateName: session.templateName,
-            staffName: session.staff.name,
+            staffName: session.startedBy.name,
             deviceId: session.deviceId,
             startedAt: session.startedAt,
             lastActivityAt: session.lastModifiedAt,
