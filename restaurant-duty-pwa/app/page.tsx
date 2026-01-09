@@ -1,11 +1,11 @@
 /**
  * Home Page - Template Selection
- * 
+ *
  * Entry point for the app. Staff select which checklist to complete:
  * - Pass Opening (morning kitchen prep)
  * - Floor Opening (dining room setup)
  * - Closing (end of day)
- * 
+ *
  * Flow:
  * 1. Staff sees template cards
  * 2. Taps a template
@@ -24,21 +24,20 @@ import AutocompleteInput from '@/components/ui/AutocompleteInput';
 import type { StaffMember, TemplateId, TemplatePreview } from '@/types';
 
 // Icon components for templates
-function UtensilsIcon() {
+function ChefHatIcon() {
   return (
     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      <circle cx="12" cy="12" r="10" strokeWidth={2} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M12 14v8m-4-8v8m8-8v8M6 14h12M8 6a4 4 0 118 0M6 10a6 6 0 0012 0" />
     </svg>
   );
 }
 
-function LayoutIcon() {
+function ChairIcon() {
   return (
     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2} />
-      <path strokeLinecap="round" strokeWidth={2} d="M3 9h18M9 21V9" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M3 9h18M3 15h18M6 9v12M18 9v12M9 3h6v6H9V3z" />
     </svg>
   );
 }
@@ -53,8 +52,8 @@ function MoonIcon() {
 }
 
 const ICONS = {
-  utensils: UtensilsIcon,
-  layout: LayoutIcon,
+  utensils: ChefHatIcon,
+  layout: ChairIcon,
   moon: MoonIcon,
 };
 
@@ -63,73 +62,69 @@ export default function HomePage() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplatePreview | null>(null);
   const [showNameInput, setShowNameInput] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-  
+
   const { activeStaff, addStaff, activeManagers } = useStaffRegistry();
   const { startChecklist, checkForActiveSessions } = useSessionStore();
-  
+
   // Monitor online status
   useEffect(() => {
     setIsOnline(navigator.onLine);
-    
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-  
-  // Handle template selection
+
+  // Handle template selection - collaborative mode
   const handleTemplateSelect = async (template: TemplatePreview) => {
     // Check for existing sessions
     const existingSession = await checkForActiveSessions(template.id);
-    
+
     if (existingSession) {
-      if (existingSession.isOwnDevice) {
-        // Resume own session
+      // In collaborative mode, existing sessions can be resumed by anyone
+      if (confirm(
+        `This checklist was started at ${new Date(existingSession.startedAt).toLocaleTimeString()}. ` +
+        `Progress: ${existingSession.completionPercentage}%\n\n` +
+        `Continue working on it?`
+      )) {
         router.push(`/checklist/${template.id}?resume=${existingSession.checklistId}`);
-        return;
-      } else {
-        // Session on another device - show warning
-        alert(
-          `${existingSession.staffName} started this checklist on another iPad at ` +
-          `${new Date(existingSession.startedAt).toLocaleTimeString()}. ` +
-          `Ask a manager to close it first.`
-        );
-        return;
       }
+      return;
     }
-    
+
+    // Start new collaborative checklist (no staff selection needed)
     setSelectedTemplate(template);
     setShowNameInput(true);
   };
-  
-  // Handle staff selection
+
+  // Handle checklist start - ask who's starting it
   const handleStaffSelect = async (staff: StaffMember) => {
     if (!selectedTemplate) return;
-    
+
     await startChecklist(selectedTemplate.id, {
       id: staff.id,
       name: staff.name,
       role: staff.role,
     });
-    
+
     router.push(`/checklist/${selectedTemplate.id}`);
   };
-  
-  // Handle adding new staff (requires manager PIN - simplified for now)
+
+  // Handle adding new staff
   const handleAddNewStaff = async (name: string) => {
-    // In a real implementation, this would trigger ManagerAuthModal first
     const newStaff = await addStaff({ name, role: 'staff' });
     if (newStaff) {
       handleStaffSelect(newStaff);
     }
   };
-  
+
   // Get current greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -137,77 +132,112 @@ export default function HomePage() {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
-  
+
+  // Mock progress for now (0-100) - this will come from actual checklist data later
+  const getProgress = (templateId: TemplateId): number => {
+    // TODO: Get actual progress from IndexedDB
+    return 0; // No progress yet
+  };
+
   return (
-    <div className="min-h-full flex flex-col">
-      {/* Offline banner */}
-      {!isOnline && (
-        <div className="offline-banner">
-          You're offline. Changes will sync when connection is restored.
+    <div className="min-h-full flex flex-col bg-gray-50">
+      {/* Header with offline indicator and settings */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {getGreeting()}
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Select a checklist to begin
+            </p>
+          </div>
+
+          {/* Right side: Offline indicator + Settings */}
+          <div className="flex items-center gap-3">
+            {/* Offline indicator - small icon */}
+            {!isOnline && (
+              <div className="flex items-center gap-2 text-amber-600" title="Offline mode">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
+                </svg>
+              </div>
+            )}
+
+            {/* Settings button - top right */}
+            <button
+              onClick={() => router.push('/settings')}
+              className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100
+                       rounded-xl transition-all active:scale-95 touch-manipulation"
+              aria-label="Settings"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
         </div>
-      )}
-      
-      {/* Header */}
-      <header className="px-6 pt-8 pb-4">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {getGreeting()}
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Select a checklist to begin
-        </p>
       </header>
-      
+
       {/* Template cards */}
-      <main className="flex-1 px-6 pb-8">
-        <div className="grid gap-4">
+      <main className="flex-1 px-6 py-6">
+        <div className="grid gap-4 max-w-3xl mx-auto">
           {TEMPLATE_PREVIEWS.map((template) => {
             const IconComponent = ICONS[template.icon];
-            
+            const progress = getProgress(template.id);
+
             return (
               <button
                 key={template.id}
                 onClick={() => handleTemplateSelect(template)}
-                className="template-card text-left"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5
+                         hover:shadow-md active:scale-[0.98] transition-all duration-200
+                         text-left touch-manipulation"
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
                   <div
-                    className="icon flex-shrink-0"
+                    className="w-16 h-16 rounded-xl flex items-center justify-center
+                             text-white flex-shrink-0 shadow-sm"
                     style={{ backgroundColor: template.accentColor }}
                   >
                     <IconComponent />
                   </div>
-                  
+
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-semibold text-gray-900">
                       {template.name}
                     </h2>
-                    <p className="text-gray-500 mt-0.5">
+                    <p className="text-gray-500 mt-1 text-sm">
                       {template.description}
                     </p>
-                    
-                    {/* Meta info */}
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        {template.totalTasks} tasks
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        ~{template.estimatedMinutes} min
-                      </span>
+
+                    {/* Progress bar */}
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                        <span>{template.totalTasks} tasks</span>
+                        {progress > 0 && <span>{progress}% complete</span>}
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${progress}%`,
+                            backgroundColor: template.accentColor,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                  
+
                   {/* Arrow */}
-                  <svg className="w-6 h-6 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-400 flex-shrink-0 self-center"
+                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -216,11 +246,12 @@ export default function HomePage() {
           })}
         </div>
       </main>
-      
+
       {/* Name selection modal */}
       {showNameInput && selectedTemplate && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center
+                   bg-black/50 backdrop-blur-sm p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowNameInput(false);
@@ -228,14 +259,15 @@ export default function HomePage() {
             }
           }}
         >
-          <div className="w-full max-w-lg bg-white rounded-t-3xl p-6 pb-8 animate-slide-up safe-area-inset">
-            {/* Handle bar */}
-            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6" />
-            
+          <div className="w-full max-w-lg bg-white rounded-3xl sm:rounded-2xl p-6 pb-8
+                        animate-slide-up shadow-2xl">
+            {/* Handle bar (mobile only) */}
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6 sm:hidden" />
+
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white"
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm"
                 style={{ backgroundColor: selectedTemplate.accentColor }}
               >
                 {(() => {
@@ -248,11 +280,11 @@ export default function HomePage() {
                   {selectedTemplate.name}
                 </h2>
                 <p className="text-gray-500 text-sm">
-                  Who's completing this checklist?
+                  Who's starting this checklist?
                 </p>
               </div>
             </div>
-            
+
             {/* Name input */}
             <AutocompleteInput
               staffList={activeStaff}
@@ -262,38 +294,22 @@ export default function HomePage() {
               label="Your Name"
               size="large"
             />
-            
+
             {/* Cancel button */}
             <button
               onClick={() => {
                 setShowNameInput(false);
                 setSelectedTemplate(null);
               }}
-              className="w-full mt-4 h-12 text-gray-500 font-medium
-                       hover:bg-gray-100 rounded-xl transition-colors touch-manipulation"
+              className="w-full mt-4 h-12 text-gray-600 font-medium
+                       hover:bg-gray-100 rounded-xl transition-all active:scale-[0.98]
+                       touch-manipulation"
             >
               Cancel
             </button>
           </div>
         </div>
       )}
-      
-      {/* Footer with settings access */}
-      <footer className="px-6 py-4 border-t border-gray-200">
-        <button
-          onClick={() => router.push('/settings')}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 
-                   transition-colors touch-manipulation"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span className="text-sm font-medium">Settings</span>
-        </button>
-      </footer>
     </div>
   );
 }

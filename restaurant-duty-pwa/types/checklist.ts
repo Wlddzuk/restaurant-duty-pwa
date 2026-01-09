@@ -34,27 +34,30 @@ export type TaskCompletionStatus = 'done' | 'not_done' | 'na';
 export interface TaskCompletion {
   /** Reference to task ID in template */
   taskId: string;
-  
+
   /** Completion status */
   status: TaskCompletionStatus;
-  
+
   /** ISO timestamp when status was last changed */
   completedAt?: string;
-  
-  /** 
+
+  /**
    * Manager note if marked as 'not_done'
    * Required when manager overrides with NOT DONE status
    */
   note?: string;
-  
-  /** 
+
+  /**
    * Numeric input value if task requires it
    * (e.g., fridge temperature, stock count)
    */
   inputValue?: number;
-  
-  /** Who completed/modified this task (staff ID) */
-  completedBy?: string;
+
+  /**
+   * Staff member who completed this task
+   * Contains full reference (id, name, role) for reporting
+   */
+  completedBy?: StaffReference;
 }
 
 /**
@@ -71,72 +74,84 @@ export interface SectionProgress {
 
 /**
  * Main checklist instance - stored in IndexedDB
+ *
+ * COLLABORATIVE MODEL: Multiple staff members work on the same checklist.
+ * Each task tracks who completed it via the completedBy field.
  */
 export interface ChecklistInstance {
   /** Unique instance identifier (UUID) */
   id: string;
-  
+
   /** Which template this is an instance of */
   templateId: TemplateId;
-  
+
   /** Template name snapshot (for historical accuracy) */
   templateName: string;
-  
+
   /** Current status of the checklist */
   status: ChecklistStatus;
-  
-  /** Staff member completing the checklist */
-  staff: StaffReference;
-  
+
+  /**
+   * Staff member who started the checklist (for reference)
+   * In collaborative mode, this is just who opened it first
+   */
+  startedBy: StaffReference;
+
   /** Manager who authorized (populated on approval) */
   manager?: StaffReference;
-  
-  /** 
-   * Device UUID that owns this session
-   * Prevents multi-device editing conflicts
+
+  /**
+   * All staff members who contributed to this checklist
+   * Computed from task completions
+   */
+  contributors?: StaffReference[];
+
+  /**
+   * Device UUID that started this session
+   * Multiple devices can work simultaneously
    */
   deviceId: string;
-  
+
   /** Map of taskId -> completion record */
   tasks: Record<string, TaskCompletion>;
-  
+
   /** Overall completion percentage (0-100) */
   completionPercentage: number;
-  
+
   /** Count of tasks marked 'done' */
   doneCount: number;
-  
+
   /** Count of tasks marked 'not_done' */
   notDoneCount: number;
-  
+
   /** Count of tasks marked 'na' */
   naCount: number;
-  
+
   /** Total tasks in template */
   totalTasks: number;
-  
+
   /** ISO timestamp when checklist was started */
   startedAt: string;
-  
+
   /** ISO timestamp of last modification */
   lastModifiedAt: string;
-  
+
   /** ISO timestamp when submitted for review */
   submittedAt?: string;
-  
+
   /** ISO timestamp when manager approved */
   approvedAt?: string;
-  
+
   /** ISO timestamp when synced to Google */
   syncedAt?: string;
-  
-  /** 
+
+  /**
    * Manager's overall notes for the shift
    * Free-text field for handoff information
    */
   shiftNotes?: string;
-  
-  /** 
+
+  /**
    * If session was force-closed by manager
    * Contains reason and manager reference
    */
