@@ -9,7 +9,7 @@
  * These templates define the structure that ChecklistInstances are created from.
  */
 
-import type { DutyTemplate, TemplateMap, TemplatePreview } from '@/types';
+import type { DutyTemplate, TemplateMap, TemplatePreview, TemplateId } from '@/types';
 
 /**
  * Pass Opening Checklist

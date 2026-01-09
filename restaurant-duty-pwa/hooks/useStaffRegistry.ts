@@ -79,8 +79,8 @@ export function useStaffRegistry(): UseStaffRegistryReturn {
   
   // Derived: active managers only
   const activeManagers = allStaff.filter(
-    (s): s is Manager => s.role === 'manager' && s.active
-  );
+    (s) => s.role === 'manager' && s.active
+  ) as Manager[];
   
   // Check if name exists (case-insensitive)
   const nameExists = useCallback(
