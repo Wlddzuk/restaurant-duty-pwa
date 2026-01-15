@@ -34,27 +34,30 @@ export type TaskCompletionStatus = 'done' | 'not_done' | 'na';
 export interface TaskCompletion {
   /** Reference to task ID in template */
   taskId: string;
-  
+
   /** Completion status */
   status: TaskCompletionStatus;
-  
+
   /** ISO timestamp when status was last changed */
   completedAt?: string;
-  
-  /** 
+
+  /**
    * Manager note if marked as 'not_done'
    * Required when manager overrides with NOT DONE status
    */
   note?: string;
-  
-  /** 
+
+  /**
    * Numeric input value if task requires it
    * (e.g., fridge temperature, stock count)
    */
   inputValue?: number;
-  
+
   /** Who completed/modified this task (staff ID) */
   completedBy?: string;
+
+  /** Staff name who completed/signed this task (display name) */
+  completedByName?: string;
 }
 
 /**

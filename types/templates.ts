@@ -102,37 +102,45 @@ export interface TemplateSection {
 }
 
 /**
+ * Display type shown in template list
+ */
+export type TemplateDisplayType = 'Yes/No/N.A. check' | 'Table';
+
+/**
  * Complete duty template definition
  */
 export interface DutyTemplate {
   /** Unique template identifier */
   id: TemplateId;
-  
+
   /** Display name (e.g., 'Pass Opening Checklist') */
   name: string;
-  
+
   /** Short description shown on selection screen */
   description: string;
-  
-  /** 
+
+  /**
    * Template type affects available features
    * - 'opening': Morning prep tasks
    * - 'closing': End-of-day with time-based sections
    */
   type: 'opening' | 'closing';
-  
+
+  /** Display type shown in template list (e.g., 'Yes/No/N.A. check') */
+  displayType: TemplateDisplayType;
+
   /** Sections containing grouped tasks */
   sections: TemplateSection[];
-  
+
   /** Total number of tasks (computed) */
   totalTasks: number;
-  
+
   /** Estimated completion time in minutes */
   estimatedMinutes: number;
-  
+
   /** Icon identifier for UI */
   icon: 'utensils' | 'layout' | 'moon';
-  
+
   /** Accent color for template card */
   accentColor: string;
 }
@@ -144,6 +152,7 @@ export interface TemplatePreview {
   id: TemplateId;
   name: string;
   description: string;
+  displayType: TemplateDisplayType;
   totalTasks: number;
   estimatedMinutes: number;
   icon: DutyTemplate['icon'];

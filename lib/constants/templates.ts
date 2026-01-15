@@ -9,7 +9,7 @@
  * These templates define the structure that ChecklistInstances are created from.
  */
 
-import type { DutyTemplate, TemplateMap, TemplatePreview } from '@/types';
+import type { DutyTemplate, TemplateMap, TemplatePreview, TemplateId } from '@/types';
 
 /**
  * Pass Opening Checklist
@@ -22,6 +22,7 @@ export const PASS_OPENING_TEMPLATE: DutyTemplate = {
   name: 'Pass Opening Checklist',
   description: 'Kitchen pass prep, sanitation, and stock checks',
   type: 'opening',
+  displayType: 'Yes/No/N.A. check',
   icon: 'utensils',
   accentColor: '#E07A5F', // Terracotta
   estimatedMinutes: 45,
@@ -339,6 +340,7 @@ export const FLOOR_OPENING_TEMPLATE: DutyTemplate = {
   name: 'Floor Opening Checklist',
   description: 'Dining room, terrace, and station setup',
   type: 'opening',
+  displayType: 'Yes/No/N.A. check',
   icon: 'layout',
   accentColor: '#3D5A80', // Navy blue
   estimatedMinutes: 50,
@@ -607,6 +609,7 @@ export const CLOSING_TEMPLATE: DutyTemplate = {
   name: 'Closing Checklist',
   description: 'End-of-day cleanup and security',
   type: 'closing',
+  displayType: 'Yes/No/N.A. check',
   icon: 'moon',
   accentColor: '#6B4C9A', // Purple
   estimatedMinutes: 60,
@@ -1024,6 +1027,7 @@ export const TEMPLATE_PREVIEWS: TemplatePreview[] = [
     id: 'pass_opening',
     name: PASS_OPENING_TEMPLATE.name,
     description: PASS_OPENING_TEMPLATE.description,
+    displayType: PASS_OPENING_TEMPLATE.displayType,
     totalTasks: PASS_OPENING_TEMPLATE.totalTasks,
     estimatedMinutes: PASS_OPENING_TEMPLATE.estimatedMinutes,
     icon: PASS_OPENING_TEMPLATE.icon,
@@ -1033,6 +1037,7 @@ export const TEMPLATE_PREVIEWS: TemplatePreview[] = [
     id: 'floor_opening',
     name: FLOOR_OPENING_TEMPLATE.name,
     description: FLOOR_OPENING_TEMPLATE.description,
+    displayType: FLOOR_OPENING_TEMPLATE.displayType,
     totalTasks: FLOOR_OPENING_TEMPLATE.totalTasks,
     estimatedMinutes: FLOOR_OPENING_TEMPLATE.estimatedMinutes,
     icon: FLOOR_OPENING_TEMPLATE.icon,
@@ -1042,6 +1047,7 @@ export const TEMPLATE_PREVIEWS: TemplatePreview[] = [
     id: 'closing',
     name: CLOSING_TEMPLATE.name,
     description: CLOSING_TEMPLATE.description,
+    displayType: CLOSING_TEMPLATE.displayType,
     totalTasks: CLOSING_TEMPLATE.totalTasks,
     estimatedMinutes: CLOSING_TEMPLATE.estimatedMinutes,
     icon: CLOSING_TEMPLATE.icon,

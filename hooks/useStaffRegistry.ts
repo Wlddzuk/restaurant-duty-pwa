@@ -24,6 +24,18 @@ import type {
   StaffRole,
 } from '@/types';
 
+// Polyfill for crypto.randomUUID (not available on older Safari/iOS)
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return generateUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 interface UseStaffRegistryReturn {
   /** All active staff members */
   activeStaff: StaffMember[];
@@ -79,8 +91,8 @@ export function useStaffRegistry(): UseStaffRegistryReturn {
   
   // Derived: active managers only
   const activeManagers = allStaff.filter(
-    (s): s is Manager => s.role === 'manager' && s.active
-  );
+    (s): s is Manager => s.role === 'manager' && s.active && 'pinHash' in s
+  ) as Manager[];
   
   // Check if name exists (case-insensitive)
   const nameExists = useCallback(
@@ -128,7 +140,7 @@ export function useStaffRegistry(): UseStaffRegistryReturn {
         
         // Create staff record
         const now = new Date().toISOString();
-        const id = crypto.randomUUID();
+        const id = generateUUID();
         
         const staffMember: StaffMember | Manager = {
           id,

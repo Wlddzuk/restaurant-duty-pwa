@@ -23,6 +23,7 @@ export type {
   TemplateId,
   TimeWindow,
   RestaurantArea,
+  TemplateDisplayType,
   DutyTask,
   TemplateSection,
   DutyTemplate,

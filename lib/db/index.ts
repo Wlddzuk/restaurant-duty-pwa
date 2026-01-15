@@ -21,6 +21,19 @@ import {
   DB_SCHEMA_VERSIONS,
 } from '@/types';
 
+// Polyfill for crypto.randomUUID (not available on older Safari/iOS)
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return generateUUID();
+  }
+  // Fallback implementation
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
  * Restaurant Duty Database Class
  * 
@@ -38,20 +51,9 @@ export class RestaurantDutyDB extends Dexie {
 
   constructor() {
     super(DB_NAME);
-    
+
     // Define schema for current version
     this.version(CURRENT_DB_VERSION).stores(DB_SCHEMA_VERSIONS[1]);
-    
-    // Hooks for automatic timestamp management
-    this.staff.hook('creating', (primKey, obj) => {
-      if (!obj.createdAt) {
-        obj.createdAt = new Date().toISOString();
-      }
-    });
-    
-    this.checklists.hook('updating', (modifications, primKey, obj) => {
-      return { ...modifications, lastModifiedAt: new Date().toISOString() };
-    });
   }
 }
 
@@ -74,8 +76,8 @@ export async function initializeDeviceConfig(): Promise<DeviceConfig> {
   
   const config: DeviceConfig = {
     id: 'device_config',
-    deviceId: crypto.randomUUID(),
-    pinSalt: crypto.randomUUID(),
+    deviceId: generateUUID(),
+    pinSalt: generateUUID(),
     installedAt: new Date().toISOString(),
     appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   };
@@ -134,7 +136,7 @@ export async function logAuditEntry(
   
   await db.auditLog.add({
     ...entry,
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     timestamp: new Date().toISOString(),
     deviceId,
   });

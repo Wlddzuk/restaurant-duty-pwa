@@ -25,6 +25,18 @@ import { calculateCompletionStats } from '@/types';
 import { db, getDeviceId, logAuditEntry } from '@/lib/db';
 import { getTemplate, getAllTaskIds } from '@/lib/constants/templates';
 
+// Polyfill for crypto.randomUUID (not available on older Safari/iOS)
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return generateUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 interface SessionState {
   /** Current active checklist instance */
   currentChecklist: ChecklistInstance | null;
@@ -50,6 +62,7 @@ interface SessionActions {
   updateTask: (
     taskId: string,
     status: TaskCompletionStatus,
+    staffName?: string,
     note?: string,
     inputValue?: number
   ) => Promise<void>;
@@ -108,7 +121,7 @@ export const useSessionStore = create<SessionStore>()(
           // Create new checklist instance
           const now = new Date().toISOString();
           const checklist: ChecklistInstance = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             templateId,
             templateName: template.name,
             status: 'in_progress',
@@ -190,7 +203,7 @@ export const useSessionStore = create<SessionStore>()(
       },
 
       // Update task status
-      updateTask: async (taskId, status, note, inputValue) => {
+      updateTask: async (taskId, status, staffName, note, inputValue) => {
         const { currentChecklist } = get();
 
         if (!currentChecklist) {
@@ -207,6 +220,7 @@ export const useSessionStore = create<SessionStore>()(
             note,
             inputValue,
             completedBy: currentChecklist.staff.id,
+            completedByName: staffName,
           };
 
           const updatedTasks = {

@@ -12,10 +12,12 @@ node_modules/
 
 # Production
 /build
+dist/
 
 # Misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # Debug
 npm-debug.log*
@@ -26,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env.local
 .env
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Vercel
 .vercel
@@ -33,3 +38,27 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Images (user uploaded)
+*.jpg
+*.jpeg
+*.png
+*.gif
+!public/**/*.jpg
+!public/**/*.jpeg
+!public/**/*.png
+!public/**/*.gif
+
+# Claude Code
+.claude/
+
+# Tasks
+tasks/
